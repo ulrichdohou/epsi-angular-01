@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./api:/app
+    environment:
+      - FLASK_ENV=development  # Change to "production" for prod
+    command: python app.py
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      target: dev
+    container_name: angular
+    ports:
+      - "4200:80"
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: npm start # For ng serve in development
+
+  app-prod:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      target: prod
+    container_name: angular-prod
+    ports:
+      - "80:80"
+    volumes:
+      - ./app:/usr/share/nginx/html
+    command: ["nginx", "-g", "daemon off;"]
